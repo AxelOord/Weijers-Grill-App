@@ -1,7 +1,6 @@
 package com.hhs.testproject.adapters;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 public class PresetCardAdapter extends RecyclerView.Adapter<PresetCardAdapter.PresetsViewHolder> {
 
     private final Context context;
-    private final ArrayList<CardModel> presetsList = new ArrayList<>();
+    public final ArrayList<CardModel> presets = new ArrayList<>();
 
     public PresetCardAdapter(Context context) {
         this.context = context;
@@ -60,7 +59,7 @@ public class PresetCardAdapter extends RecyclerView.Adapter<PresetCardAdapter.Pr
 
     @Override
     public void onBindViewHolder(@NonNull PresetsViewHolder holder, int position) {
-        CardModel presetCardModel = presetsList.get(position);
+        CardModel presetCardModel = presets.get(position);
         populateCard(holder, presetCardModel);
 
         // OnClickListener of the notification button on current card
@@ -86,7 +85,7 @@ public class PresetCardAdapter extends RecyclerView.Adapter<PresetCardAdapter.Pr
                 manager.setFragmentResult("data", bundle);
 
                 // Start transaction to next fragment and add current fragment to the backstack
-                // When te backstack is popped, the current fragment will be loaded in with the customAnimation
+                // When the backstack is popped, the current fragment will be loaded in with the customAnimation
                 FragmentTransaction transaction = manager.beginTransaction();
                 transaction.setCustomAnimations(R.anim.slide_in, R.anim.no_animation, 0, R.anim.slide_out)
                     .replace(R.id.nav_host_fragment_content_main, SecondFragment.class, null)
@@ -118,12 +117,12 @@ public class PresetCardAdapter extends RecyclerView.Adapter<PresetCardAdapter.Pr
             holder.notification.setColorFilter(ContextCompat.getColor(context, R.color.text_secondary));
     }
 
-    public ArrayList<CardModel> getPresetsList() {
-        return presetsList;
+    public ArrayList<CardModel> getPresets() {
+        return presets;
     }
 
     @Override
     public int getItemCount() {
-        return presetsList.size();
+        return presets.size();
     }
 }

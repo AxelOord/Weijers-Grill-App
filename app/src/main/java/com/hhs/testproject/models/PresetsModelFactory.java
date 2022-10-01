@@ -18,7 +18,6 @@ public class PresetsModelFactory implements ViewModelProvider.Factory{
         this.adapter = adapter;
     }
 
-
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {

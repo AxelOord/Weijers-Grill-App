@@ -1,6 +1,7 @@
 package com.hhs.testproject.fragments;
 
 import android.content.res.Resources;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -12,12 +13,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hhs.testproject.MainApplication;
 import com.hhs.testproject.R;
 import com.hhs.testproject.models.PresetsModel;
 import com.hhs.testproject.utils.GridSpacingItemDecoration;
+import com.hhs.testproject.utils.SwipeController;
+import com.hhs.testproject.utils.SwipeControllerActions;
 
 import java.util.Objects;
 
@@ -27,6 +31,8 @@ public class PresetFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private View view;
+
+    SwipeController swipeController = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -69,5 +75,23 @@ public class PresetFragment extends Fragment {
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, dpToPx(5), true));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(presetsModel.getAdapter());
+
+        swipeController = new SwipeController(new SwipeControllerActions() {
+            @Override
+            public void onRightClicked(int position) {
+                presetsModel.getAdapter().presets.remove(position);
+                presetsModel.getAdapter().notifyItemRemoved(position);
+                presetsModel.getAdapter().notifyItemRangeChanged(position, presetsModel.getAdapter().getItemCount());
+            }
+        });
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+        itemTouchhelper.attachToRecyclerView(recyclerView);
+
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                swipeController.onDraw(c);
+            }
+        });
     }
 }

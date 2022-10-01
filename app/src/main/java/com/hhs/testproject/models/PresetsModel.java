@@ -19,7 +19,7 @@ public class PresetsModel extends AndroidViewModel {
     }
 
     public ArrayList<CardModel> getList() {
-        return adapter.getPresetsList();
+        return adapter.getPresets();
     }
 
     public PresetCardAdapter getAdapter() {
@@ -29,7 +29,7 @@ public class PresetsModel extends AndroidViewModel {
     public void changeDataOfCard() {
         getList().get(0).setCurrentTemp(getList().get(0).getCurrentTemp() + 1);
         getList().get(0).setTimeInSeconds(getList().get(0).getTimeInSeconds() - 1800);
-        System.out.println(adapter.getPresetsList());
+        System.out.println(adapter.getPresets());
 
         adapter.notifyDataSetChanged();
     }
@@ -39,10 +39,18 @@ public class PresetsModel extends AndroidViewModel {
         CardModel p1 = new CardModel(SteakType.BEEF, "Well Done", 5400, 0, 75, false);
         CardModel p2 = new CardModel(SteakType.CHICKEN, "Medium Rare", 5400, 0, 75, false);
 
-        adapter.getPresetsList().add(p);
-        adapter.getPresetsList().add(p1);
-        adapter.getPresetsList().add(p2);
+        adapter.getPresets().add(p);
+        adapter.getPresets().add(p1);
+        adapter.getPresets().add(p2);
 
        adapter.notifyDataSetChanged();
+    }
+
+    public void addCard(){
+        CardModel p = new CardModel(SteakType.BEEF, "Rare", 5400, 18, 51, false);
+
+        adapter.getPresets().add(p);
+
+        adapter.notifyDataSetChanged();
     }
 }
