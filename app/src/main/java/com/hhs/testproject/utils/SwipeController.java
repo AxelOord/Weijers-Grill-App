@@ -1,9 +1,15 @@
 package com.hhs.testproject.utils;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -12,8 +18,14 @@ import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE;
 import static androidx.recyclerview.widget.ItemTouchHelper.LEFT;
 import static androidx.recyclerview.widget.ItemTouchHelper.RIGHT;
 
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.hhs.testproject.R;
+
+import java.util.Objects;
 
 enum ButtonsState {
     GONE,
@@ -21,6 +33,8 @@ enum ButtonsState {
     RIGHT_VISIBLE
 }
 
+
+// This class is not in utils, may need an separate package..
 public class SwipeController extends ItemTouchHelper.Callback {
 
     // True when the card is released en snaps back
@@ -32,14 +46,17 @@ public class SwipeController extends ItemTouchHelper.Callback {
     // Place holder for the buttons, don't understand why both of them render
     private RectF buttonInstance = null;
 
-    private RecyclerView.ViewHolder currentItemViewHolder = null;
+    private RecyclerView.ViewHolder currentItemViewHolder;
 
-    // Abstract controller for the buttons, implemented by the fraction that uses them
-    private SwipeControllerActions buttonsActions = null;
+    // Abstract controller for the buttons, implemented by the fragment that uses them
+    private final SwipeControllerActions buttonsActions;
 
-    private static final float buttonWidth = 300;
+    private static final float buttonWidth = 400;
 
-    public SwipeController(SwipeControllerActions buttonsActions) {
+    private final Context context;
+
+    public SwipeController(Context context, SwipeControllerActions buttonsActions) {
+        this.context = context;
         this.buttonsActions = buttonsActions;
     }
 
@@ -69,7 +86,6 @@ public class SwipeController extends ItemTouchHelper.Callback {
 
     @Override
     public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-        System.out.println("onChildDraw");
         if (actionState == ACTION_STATE_SWIPE) {
             if (buttonShowedState != ButtonsState.GONE) {
                 if (buttonShowedState == ButtonsState.LEFT_VISIBLE) dX = Math.max(dX, buttonWidth);
@@ -82,12 +98,13 @@ public class SwipeController extends ItemTouchHelper.Callback {
         }
 
         if (buttonShowedState == ButtonsState.GONE) {
-            System.out.println("Gone");
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
         currentItemViewHolder = viewHolder;
     }
 
+    // Suppress warning because accessibility is not a priority
+    @SuppressLint("ClickableViewAccessibility")
     private void setTouchListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dX, final float dY, final int actionState, final boolean isCurrentlyActive) {
         recyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -107,6 +124,7 @@ public class SwipeController extends ItemTouchHelper.Callback {
         });
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setTouchDownListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dX, final float dY, final int actionState, final boolean isCurrentlyActive) {
         recyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -119,11 +137,14 @@ public class SwipeController extends ItemTouchHelper.Callback {
         });
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setTouchUpListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dX, final float dY, final int actionState, final boolean isCurrentlyActive) {
         recyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
+
+                    // Sets the itemView ( Card ) to its original position, for some reason doesn't trigger the animation..
                     SwipeController.super.onChildDraw(c, recyclerView, viewHolder, 0F, dY, actionState, isCurrentlyActive);
                     recyclerView.setOnTouchListener(new View.OnTouchListener() {
                         @Override
@@ -134,12 +155,13 @@ public class SwipeController extends ItemTouchHelper.Callback {
                     setItemsClickable(recyclerView, true);
                     swipeBack = false;
 
+                    // Check which button is clicked, when clicked
                     if (buttonsActions != null && buttonInstance != null && buttonInstance.contains(event.getX(), event.getY())) {
                         if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
-                            buttonsActions.onLeftClicked(viewHolder.getAdapterPosition());
+                            buttonsActions.onLeftClicked(viewHolder.getBindingAdapterPosition());
                         }
                         else if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
-                            buttonsActions.onRightClicked(viewHolder.getAdapterPosition());
+                            buttonsActions.onRightClicked(viewHolder.getBindingAdapterPosition());
                         }
                     }
                     buttonShowedState = ButtonsState.GONE;
@@ -157,48 +179,58 @@ public class SwipeController extends ItemTouchHelper.Callback {
     }
 
     private void drawButtons(Canvas c, RecyclerView.ViewHolder viewHolder) {
+
         float buttonWidthWithoutPadding = buttonWidth - 20;
         float corners = 16;
 
         View itemView = viewHolder.itemView;
         Paint p = new Paint();
-        System.out.println("Elevation = " + itemView.getMeasuredHeight());
 
-        float cardSide = (itemView.getMeasuredWidth() / 100) * 2.3f;
-        float cardTopBottom = (itemView.getMeasuredHeight() / 100 * 6);
+        float cardSide = (itemView.getMeasuredWidth() / 100f) * 2.3f;
+        float cardTopBottom = (itemView.getMeasuredHeight() / 100f * 6);
 
-        RectF leftButton = new RectF(itemView.getLeft() + cardSide, itemView.getTop() + cardTopBottom , itemView.getLeft() + buttonWidthWithoutPadding, itemView.getBottom()  - cardTopBottom);
-        p.setColor(Color.BLUE);
-        c.drawRoundRect(leftButton, corners, corners, p);
-        drawText("EDIT", c, leftButton, p);
+        RectF editButton = new RectF(itemView.getLeft() + cardSide, itemView.getTop() + cardTopBottom , itemView.getLeft() + buttonWidthWithoutPadding, itemView.getBottom()  - cardTopBottom);
+        p.setColor(context.getResources().getColor(R.color.green_primary));
+        c.drawRoundRect(editButton, corners, corners, p);
+        drawText(R.drawable.ic_baseline_edit_48, c, editButton, p);
 
-        RectF rightButton = new RectF(itemView.getRight() - buttonWidthWithoutPadding, itemView.getTop() + cardTopBottom, itemView.getRight() - cardSide, itemView.getBottom() - cardTopBottom);
+        RectF deleteButton = new RectF(itemView.getRight() - buttonWidthWithoutPadding, itemView.getTop() + cardTopBottom, itemView.getRight() - cardSide, itemView.getBottom() - cardTopBottom);
         p.setColor(Color.RED);
-        c.drawRoundRect(rightButton, corners, corners, p);
-        drawText("DELETE", c, rightButton, p);
+        c.drawRoundRect(deleteButton, corners, corners, p);
+        drawText(R.drawable.ic_baseline_delete_48, c, deleteButton, p);
 
         buttonInstance = null;
         if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
-            buttonInstance = leftButton;
+            buttonInstance = editButton;
         }
         else if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
-            buttonInstance = rightButton;
+            buttonInstance = deleteButton;
         }
     }
 
-    private void drawText(String text, Canvas c, RectF button, Paint p) {
-        float textSize = 60;
-        p.setColor(Color.WHITE);
+    private void drawText(int drawableId, Canvas c, RectF button, Paint p) {
         p.setAntiAlias(true);
-        p.setTextSize(textSize);
 
-        float textWidth = p.measureText(text);
-        c.drawText(text, button.centerX()-(textWidth/2), button.centerY()+(textSize/2), p);
+        Bitmap b = getBitmapFromVectorDrawable(drawableId);
+        c.drawBitmap(b, button.centerX()-(b.getWidth() / 2f), button.centerY() - (b.getHeight() / 2f), p);
     }
 
     public void onDraw(Canvas c) {
         if (currentItemViewHolder != null) {
             drawButtons(c, currentItemViewHolder);
         }
+    }
+
+    public Bitmap getBitmapFromVectorDrawable(int drawableId) {
+        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+        Objects.requireNonNull(drawable).setTint(context.getResources().getColor(R.color.white));
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
     }
 }

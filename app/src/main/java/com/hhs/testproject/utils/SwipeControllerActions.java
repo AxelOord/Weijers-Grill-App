@@ -1,7 +1,7 @@
 package com.hhs.testproject.utils;
 
-public abstract class SwipeControllerActions {
-    public void onLeftClicked(int position) {}
+public interface SwipeControllerActions {
+    void onLeftClicked(int position);
 
-    public void onRightClicked(int position) {}
+    void onRightClicked(int position);
 }

@@ -76,12 +76,15 @@ public class PresetFragment extends Fragment {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(presetsModel.getAdapter());
 
-        swipeController = new SwipeController(new SwipeControllerActions() {
+        swipeController = new SwipeController((MainApplication) requireActivity().getApplication(), new SwipeControllerActions() {
             @Override
             public void onRightClicked(int position) {
-                presetsModel.getAdapter().presets.remove(position);
-                presetsModel.getAdapter().notifyItemRemoved(position);
-                presetsModel.getAdapter().notifyItemRangeChanged(position, presetsModel.getAdapter().getItemCount());
+                presetsModel.removeCard(position);
+            }
+
+            @Override
+            public void onLeftClicked(int position) {
+                presetsModel.changeDataOfCard(position);
             }
         });
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
