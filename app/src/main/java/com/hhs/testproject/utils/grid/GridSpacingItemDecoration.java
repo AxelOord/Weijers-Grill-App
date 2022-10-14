@@ -1,4 +1,4 @@
-package com.hhs.testproject.utils;
+package com.hhs.testproject.utils.grid;
 
 import android.graphics.Rect;
 import android.view.View;

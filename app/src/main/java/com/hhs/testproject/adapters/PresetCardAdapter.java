@@ -69,7 +69,7 @@ public class PresetCardAdapter extends RecyclerView.Adapter<PresetCardAdapter.Pr
                 if(presetCardModel.isNotification())
                     setNotification(R.color.text_secondary, holder, presetCardModel, view);
                 else
-                    setNotification(R.color.green_primary, holder, presetCardModel, view);
+                    setNotification(R.color.color_primary, holder, presetCardModel, view);
             }
         });
 
@@ -81,7 +81,7 @@ public class PresetCardAdapter extends RecyclerView.Adapter<PresetCardAdapter.Pr
 
                 // Create bundle and add title for the fragment
                 Bundle bundle = new Bundle();
-                bundle.putString("title", presetCardModel.getSteak().getName() + " " + presetCardModel.getRarity());
+                bundle.putInt("position", holder.getBindingAdapterPosition());
                 manager.setFragmentResult("data", bundle);
 
                 // Start transaction to next fragment and add current fragment to the backstack
@@ -108,11 +108,11 @@ public class PresetCardAdapter extends RecyclerView.Adapter<PresetCardAdapter.Pr
         holder.steak.setText(model.getSteak().getName());
         holder.rarity.setText(model.getRarity());
         holder.time.setText(model.getTime());
-        holder.currentTemp.setText(context.getString(R.string.temperature, model.getCurrentTemp()));
-        holder.targetTemp.setText(context.getString(R.string.temperature, model.getTargetTemp()));
+        holder.currentTemp.setText(context.getString(R.string.temperature_spaced, model.getCurrentTemp()));
+        holder.targetTemp.setText(context.getString(R.string.temperature_spaced, model.getTargetTemp()));
 
         if(model.isNotification())
-            holder.notification.setColorFilter(ContextCompat.getColor(context, R.color.green_primary));
+            holder.notification.setColorFilter(ContextCompat.getColor(context, R.color.color_primary));
         else
             holder.notification.setColorFilter(ContextCompat.getColor(context, R.color.text_secondary));
     }

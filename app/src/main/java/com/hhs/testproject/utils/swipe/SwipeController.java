@@ -1,4 +1,4 @@
-package com.hhs.testproject.utils;
+package com.hhs.testproject.utils.swipe;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -8,8 +8,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
-import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -18,8 +16,8 @@ import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE;
 import static androidx.recyclerview.widget.ItemTouchHelper.LEFT;
 import static androidx.recyclerview.widget.ItemTouchHelper.RIGHT;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -49,24 +47,24 @@ public class SwipeController extends ItemTouchHelper.Callback {
     private RecyclerView.ViewHolder currentItemViewHolder;
 
     // Abstract controller for the buttons, implemented by the fragment that uses them
-    private final SwipeControllerActions buttonsActions;
+    private final ISwipeControllerActions buttonsActions;
 
     private static final float buttonWidth = 400;
 
     private final Context context;
 
-    public SwipeController(Context context, SwipeControllerActions buttonsActions) {
+    public SwipeController(Context context, ISwipeControllerActions buttonsActions) {
         this.context = context;
         this.buttonsActions = buttonsActions;
     }
 
     @Override
-    public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+    public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
         return makeMovementFlags(0, LEFT | RIGHT);
     }
 
     @Override
-    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+    public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
         return false;
     }
 
@@ -85,13 +83,14 @@ public class SwipeController extends ItemTouchHelper.Callback {
     }
 
     @Override
-    public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
         if (actionState == ACTION_STATE_SWIPE) {
             if (buttonShowedState != ButtonsState.GONE) {
                 if (buttonShowedState == ButtonsState.LEFT_VISIBLE) dX = Math.max(dX, buttonWidth);
                 if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) dX = Math.min(dX, -buttonWidth);
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
+
             else {
                 setTouchListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
@@ -100,75 +99,64 @@ public class SwipeController extends ItemTouchHelper.Callback {
         if (buttonShowedState == ButtonsState.GONE) {
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
+
         currentItemViewHolder = viewHolder;
     }
 
     // Suppress warning because accessibility is not a priority
     @SuppressLint("ClickableViewAccessibility")
     private void setTouchListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dX, final float dY, final int actionState, final boolean isCurrentlyActive) {
-        recyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                swipeBack = event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP;
-                if (swipeBack) {
-                    if (dX < -buttonWidth) buttonShowedState = ButtonsState.RIGHT_VISIBLE;
-                    else if (dX > buttonWidth) buttonShowedState  = ButtonsState.LEFT_VISIBLE;
+        recyclerView.setOnTouchListener((v, event) -> {
+            swipeBack = event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP;
+            if (swipeBack) {
+                if (dX < -buttonWidth) buttonShowedState = ButtonsState.RIGHT_VISIBLE;
+                else if (dX > buttonWidth) buttonShowedState  = ButtonsState.LEFT_VISIBLE;
 
-                    if (buttonShowedState != ButtonsState.GONE) {
-                        setTouchDownListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                        setItemsClickable(recyclerView, false);
-                    }
+                if (buttonShowedState != ButtonsState.GONE) {
+                    setTouchDownListener(c, recyclerView, viewHolder, dY, actionState, isCurrentlyActive);
+                    setItemsClickable(recyclerView, false);
                 }
-                return false;
             }
+            return false;
         });
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private void setTouchDownListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dX, final float dY, final int actionState, final boolean isCurrentlyActive) {
-        recyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    setTouchUpListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                }
-                return false;
+    private void setTouchDownListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dY, final int actionState, final boolean isCurrentlyActive) {
+        recyclerView.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                setTouchUpListener(c, recyclerView, viewHolder, dY, actionState, isCurrentlyActive);
             }
+            return false;
         });
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private void setTouchUpListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dX, final float dY, final int actionState, final boolean isCurrentlyActive) {
-        recyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_UP) {
+    private void setTouchUpListener(final Canvas c, final RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder, final float dY, final int actionState, final boolean isCurrentlyActive) {
+        recyclerView.setOnTouchListener((v, event) -> {
 
-                    // Sets the itemView ( Card ) to its original position, for some reason doesn't trigger the animation..
-                    SwipeController.super.onChildDraw(c, recyclerView, viewHolder, 0F, dY, actionState, isCurrentlyActive);
-                    recyclerView.setOnTouchListener(new View.OnTouchListener() {
-                        @Override
-                        public boolean onTouch(View v, MotionEvent event) {
-                            return false;
-                        }
-                    });
-                    setItemsClickable(recyclerView, true);
-                    swipeBack = false;
+            if (event.getAction() == MotionEvent.ACTION_UP) {
 
-                    // Check which button is clicked, when clicked
-                    if (buttonsActions != null && buttonInstance != null && buttonInstance.contains(event.getX(), event.getY())) {
-                        if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
-                            buttonsActions.onLeftClicked(viewHolder.getBindingAdapterPosition());
-                        }
-                        else if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
-                            buttonsActions.onRightClicked(viewHolder.getBindingAdapterPosition());
-                        }
+
+                // Sets the itemView ( Card ) to its original position, for some reason doesn't trigger the animation..
+                SwipeController.super.onChildDraw(c, recyclerView, viewHolder, 0F, dY, actionState, isCurrentlyActive);
+                recyclerView.setOnTouchListener((v1, event1) -> false);
+                setItemsClickable(recyclerView, true);
+                swipeBack = false;
+
+                // Check which button is clicked, when clicked
+                if (buttonsActions != null && buttonInstance != null && buttonInstance.contains(event.getX(), event.getY())) {
+                    if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
+                        buttonsActions.onLeftClicked(viewHolder.getBindingAdapterPosition());
                     }
-                    buttonShowedState = ButtonsState.GONE;
-                    currentItemViewHolder = null;
+                    else if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
+                        buttonsActions.onRightClicked(viewHolder.getBindingAdapterPosition());
+                    }
                 }
-                return false;
+                buttonShowedState = ButtonsState.GONE;
+                currentItemViewHolder = null;
             }
+            return false;
         });
     }
 
@@ -190,7 +178,7 @@ public class SwipeController extends ItemTouchHelper.Callback {
         float cardTopBottom = (itemView.getMeasuredHeight() / 100f * 6);
 
         RectF editButton = new RectF(itemView.getLeft() + cardSide, itemView.getTop() + cardTopBottom , itemView.getLeft() + buttonWidthWithoutPadding, itemView.getBottom()  - cardTopBottom);
-        p.setColor(context.getResources().getColor(R.color.green_primary));
+        p.setColor(context.getResources().getColor(R.color.color_primary));
         c.drawRoundRect(editButton, corners, corners, p);
         drawText(R.drawable.ic_baseline_edit_48, c, editButton, p);
 

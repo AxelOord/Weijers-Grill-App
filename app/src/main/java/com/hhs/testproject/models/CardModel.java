@@ -82,4 +82,8 @@ public class CardModel {
     public void setNotification(boolean notification) {
         isNotification = notification;
     }
+
+    public String getTitle() {
+        return steak.getName() + " " + rarity;
+    }
 }

@@ -26,9 +26,13 @@ public class PresetsModel extends AndroidViewModel {
         return adapter;
     }
 
+    public CardModel getCardByPosition(int position) {
+        return getList().get(position);
+    }
+
     public void changeDataOfCard(int position) {
-        getList().get(position).setCurrentTemp(getList().get(position).getCurrentTemp() + 1);
-        getList().get(position).setTimeInSeconds(getList().get(position).getTimeInSeconds() - 1800);
+        getCardByPosition(position).setCurrentTemp(getCardByPosition(position).getCurrentTemp() + 1);
+        getCardByPosition(position).setTimeInSeconds(getCardByPosition(position).getTimeInSeconds() - 1800);
         System.out.println(adapter.getPresets());
 
         adapter.notifyItemChanged(position);
@@ -60,6 +64,4 @@ public class PresetsModel extends AndroidViewModel {
         adapter.notifyItemRemoved(position);
         adapter.notifyItemRangeChanged(position, adapter.getItemCount());
     }
-
-
 }

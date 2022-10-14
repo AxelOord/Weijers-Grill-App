@@ -8,10 +8,10 @@
         android:foreground="?android:attr/selectableItemBackgroundBorderless"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="-100dp"
+        android:layout_margin="0dp"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="4dp"
-        android:elevation="5dp"
+        app:elevation="5dp"
         app:cardMaxElevation="7dp"
         app:cardPreventCornerOverlap="true"
         app:cardUseCompatPadding="true"
@@ -85,7 +85,7 @@
                 android:text="18°"
                 android:textSize="55sp"
                 android:textStyle="normal"
-                android:textColor="@color/green_primary"
+                android:textColor="@color/color_primary"
                 android:id="@+id/current_temp"/>
 
             <ImageView

@@ -7,6 +7,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,9 +20,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.hhs.testproject.MainApplication;
 import com.hhs.testproject.R;
 import com.hhs.testproject.models.PresetsModel;
-import com.hhs.testproject.utils.GridSpacingItemDecoration;
-import com.hhs.testproject.utils.SwipeController;
-import com.hhs.testproject.utils.SwipeControllerActions;
+import com.hhs.testproject.utils.grid.GridSpacingItemDecoration;
+import com.hhs.testproject.utils.swipe.SwipeController;
+import com.hhs.testproject.utils.swipe.ISwipeControllerActions;
 
 import java.util.Objects;
 
@@ -67,6 +68,11 @@ public class PresetFragment extends Fragment {
     }
 
     private void InitRecyclerView(){
+        // Only Show When recyclerView is empty
+        // TODO: actually implement this
+        TextView emptyView = view.findViewById(R.id.empty_view);
+        emptyView.setVisibility(View.GONE);
+
         recyclerView = view.findViewById(R.id.recycler_view);
 
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this.getContext(), 1);
@@ -76,7 +82,7 @@ public class PresetFragment extends Fragment {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(presetsModel.getAdapter());
 
-        swipeController = new SwipeController((MainApplication) requireActivity().getApplication(), new SwipeControllerActions() {
+        swipeController = new SwipeController((MainApplication) requireActivity().getApplication(), new ISwipeControllerActions() {
             @Override
             public void onRightClicked(int position) {
                 presetsModel.removeCard(position);
@@ -87,6 +93,7 @@ public class PresetFragment extends Fragment {
                 presetsModel.changeDataOfCard(position);
             }
         });
+
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
         itemTouchhelper.attachToRecyclerView(recyclerView);
 
